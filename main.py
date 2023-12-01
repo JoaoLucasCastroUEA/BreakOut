@@ -3,7 +3,7 @@ import pygame
 pygame.init()
 # window config
 HEIGHT = 780
-WIDTH = 712
+WIDTH = 723
 
 # Set the screen size and create a Pygame display
 size = (WIDTH, HEIGHT)
@@ -13,6 +13,11 @@ pygame.display.set_caption("BreakOut - PyGame Edition - 2023-11-30")
 # game loop
 game_loop = True
 game_clock = pygame.time.Clock()
+
+# bricks
+brick_dimension = ((WIDTH - 65) / 14, 10)
+brick_list = [[[pygame.Rect((j * ((WIDTH + 5) / 14), 150 + i * 15), brick_dimension), 1] for j in range(14)]for i in range(8)]
+print(brick_list)
 
 # player
 player_x = WIDTH/2
@@ -29,17 +34,36 @@ ball_y = 100
 
 def visuals():
     screen.fill((0, 0, 0))
-    global player, left_wall, right_wall, ball
+    global player, left_wall, right_wall, ball, brick_dimension
     player = pygame.draw.rect(screen, (000, 90, 137), (player_x, player_y, 70, 10))
 
     # walls
-    upper_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 712, 60))
+    upper_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, WIDTH, 60))
     left_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 10, 780))
-    right_wall = pygame.draw.rect(screen, (255, 255, 255), (702, 0, 10, 780))
+    right_wall = pygame.draw.rect(screen, (255, 255, 255), (WIDTH - 10, 0, 10, 780))
 
     # colored walls
     pygame.draw.rect(screen, (000, 90, 137), (0, 690, 10, 30))
-    pygame.draw.rect(screen, (000, 90, 137), (702, 690, 10, 30))
+    pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, 690, 10, 30))
+
+    # bricks
+    for i in range(8):
+        if i < 2:
+            for j in range(14):
+                if brick_list[i][j][1]:
+                    pygame.draw.rect(screen, (255, 0, 0), brick_list[i][j][0])
+        elif i < 4:
+            for j in range(14):
+                if brick_list[i][j][1]:
+                    pygame.draw.rect(screen, (255, 165, 0), brick_list[i][j][0])
+        elif i < 6:
+            for j in range(14):
+                if brick_list[i][j][1]:
+                    pygame.draw.rect(screen, (0, 255, 0), brick_list[i][j][0])
+        else:
+            for j in range(14):
+                if brick_list[i][j][1]:
+                    pygame.draw.rect(screen, (255, 255, 0), brick_list[i][j][0])
 
     # ball
     ball = pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
@@ -66,13 +90,13 @@ def commands(event):
 
 def animations():
     # player pad animation
-    global player_x, ball_y, ball_x
-    if player_move_right and player_x < 630:
+    global player_x, ball_y, ball_x, right_wall, left_wall
+    if player_move_right and player_x < (WIDTH - player[2] - right_wall[2]):
         player_x += 7
     else:
         player_x += 0
 
-    if player_move_left and player_x > 10:
+    if player_move_left and player_x > left_wall[2]:
         player_x -= 7
     else:
         player_x -= 0
@@ -84,12 +108,12 @@ def animations():
 
 def colliders():
     global ball, right_wall, ball_speed_x, ball_speed_y, ball_y
-    if ball.colliderect(right_wall):
-        print('colidiu com direita')
-    if ball.colliderect(left_wall):
-        print('colidiu com esquerda')
+    # if ball.colliderect(right_wall):
+    #     print('colidiu com direita')
+    # if ball.colliderect(left_wall):
+    #     print('colidiu com esquerda')
     if ball.colliderect(player) and ball_speed_y > 0:
-        print('colidiu')
+        # print('colidiu')
         ball_y -= 10
         ball_speed_y *= -1
 
@@ -101,6 +125,9 @@ def colliders():
 
     if ball_y < 60:
         ball_speed_y *= -1
+
+    # collision with bricks
+    #if ball.colliderect()
 
 
 while game_loop:
