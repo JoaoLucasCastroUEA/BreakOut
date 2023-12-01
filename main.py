@@ -14,10 +14,14 @@ pygame.display.set_caption("BreakOut - PyGame Edition - 2023-11-30")
 game_loop = True
 game_clock = pygame.time.Clock()
 
+# sound effects
+bounce_sound_effect = pygame.mixer.Sound('assets/bounce.wav')
+
 # bricks
 brick_dimension = ((WIDTH - 65) / 14, 10)
 brick_list = [[[pygame.Rect((j * ((WIDTH + 5) / 14), 150 + i * 15), brick_dimension), 1] for j in range(14)]for i in range(8)]
 print(brick_list)
+can_break = True
 
 # player
 player_x = WIDTH/2
@@ -29,7 +33,7 @@ player_move_right = False
 ball_speed_x = -5
 ball_speed_y = 5
 ball_x = 200
-ball_y = 100
+ball_y = 300
 
 
 def visuals():
@@ -66,7 +70,15 @@ def visuals():
                     pygame.draw.rect(screen, (255, 255, 0), brick_list[i][j][0])
 
     # ball
-    ball = pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
+    ball = pygame.draw.rect(screen, (255, 255, 255), (ball_x, ball_y, 10, 10))
+    if 135 <= ball_y < 165:
+        pygame.draw.rect(screen, (255, 0, 0), (ball_x, ball_y, 10, 10))
+    elif 165 <= ball_y < 195:
+        pygame.draw.rect(screen, (255, 165, 0), (ball_x, ball_y, 10, 10))
+    elif 195 <= ball_y < 225:
+        pygame.draw.rect(screen, (0, 255, 0), (ball_x, ball_y, 10, 10))
+    elif 225 <= ball_y < 255:
+        pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
 
 
 def commands(event):
@@ -107,27 +119,40 @@ def animations():
 
 
 def colliders():
-    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y
-    # if ball.colliderect(right_wall):
-    #     print('colidiu com direita')
-    # if ball.colliderect(left_wall):
-    #     print('colidiu com esquerda')
+    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break
     if ball.colliderect(player) and ball_speed_y > 0:
-        # print('colidiu')
         ball_y -= 10
         ball_speed_y *= -1
+        bounce_sound_effect.play()
 
     # collision with wall
     if ball_x > 680:
+        can_break = True
         ball_speed_x *= -1
+        bounce_sound_effect.play()
     if ball_x < 10:
         ball_speed_x *= -1
-
+        can_break = True
+        bounce_sound_effect.play()
     if ball_y < 60:
         ball_speed_y *= -1
+        can_break = True
+        bounce_sound_effect.play()
 
     # collision with bricks
-    #if ball.colliderect()
+    brick_column = ball_x // 52
+    if 150 < ball_y < 270:
+        brick_row = ball_y // 15 - 10
+        if (ball.colliderect(brick_list[brick_row][brick_column][0])
+                and brick_list[brick_row][brick_column][1] and can_break):
+            ball_speed_y *= -1
+            if ball_speed_y < 0:
+                ball_y -= ball_speed_y
+            else:
+                ball_y += ball_speed_y
+            can_break = False
+            brick_list[brick_row][brick_column][1] = 0
+            bounce_sound_effect.play()
 
 
 while game_loop:
