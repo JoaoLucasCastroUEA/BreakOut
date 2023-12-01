@@ -22,11 +22,10 @@ player_move_left = False
 player_move_right = False
 
 # ball config
-ball_speed_x = 5
+ball_speed_x = -5
 ball_speed_y = 5
 ball_x = 200
 ball_y = 100
-ball = pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
 
 
 def visuals():
@@ -46,6 +45,7 @@ def visuals():
     blue_right_wall = pygame.draw.rect(screen, (000, 90, 137), (702, 690, 10, 30))
 
     # ball
+    global ball
     ball = pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
 
 
@@ -79,10 +79,10 @@ def animations():
 
     if player_move_left and player_x > 10:
         player_x -= 7
-
     else:
         player_x -= 0
-
+    #print(player,'player')
+    #print(ball)
 
     # ball animation
     global ball_y
@@ -91,21 +91,35 @@ def animations():
     ball_y += ball_speed_y
 
 
+
 def colliders():
     global ball
     global righ_wall
-
+    global ball_speed_x
+    global ball_speed_y
+    global ball_y
     if ball.colliderect(righ_wall):
-        print('colidiu')
+        print('colidiu com direita')
     if ball.colliderect(left_wall):
-        print('colidiu')
+        print('colidiu com esquerda')
     if ball.colliderect(player):
         print('colidiu')
+        ball_speed_y *= -1
+
+
+    # collision with wall
+
+    if ball_x > 680:
+        ball_speed_x *= -1
+    if ball_x < 10 :
+        ball_speed_x *= -1
+
+    if ball_y < 60:
+        ball_speed_y *= -1
 
 while game_loop == True:
     # place the visuals
     visuals()
-
     # search for commands
     for event in pygame.event.get():
         commands(event)
@@ -113,8 +127,7 @@ while game_loop == True:
     # produce the animations
     animations()
     colliders()
-
-
+    print(ball_y)
     pygame.display.flip()
     game_clock.tick(60)
 
