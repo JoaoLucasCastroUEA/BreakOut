@@ -46,9 +46,6 @@ def visuals():
     left_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 10, 780))
     right_wall = pygame.draw.rect(screen, (255, 255, 255), (WIDTH - 10, 0, 10, 780))
 
-    # colored walls
-    pygame.draw.rect(screen, (000, 90, 137), (0, 690, 10, 30))
-    pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, 690, 10, 30))
 
     # bricks
     for i in range(8):
@@ -68,6 +65,31 @@ def visuals():
             for j in range(14):
                 if brick_list[i][j][1]:
                     pygame.draw.rect(screen, (255, 255, 0), brick_list[i][j][0])
+
+    # colored walls
+    for i in range(9):
+        # red wall
+        if i == 1 or i == 2:
+            pygame.draw.rect(screen, (255, 0, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
+            pygame.draw.rect(screen, (255, 0, 0), (0, 135 + 15 * i, 10, 10))
+
+        # orange wall
+        if i == 3 or i == 4:
+            pygame.draw.rect(screen, (255, 165, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
+            pygame.draw.rect(screen, (255, 165, 0), (0, 135 + 15 * i, 10, 10))
+
+        # green wall
+        if i == 5 or i == 6:
+            pygame.draw.rect(screen, (0, 255, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
+            pygame.draw.rect(screen, (0, 255, 0), (0, 135 + 15 * i, 10, 10))
+
+        # yellow wall
+        if i == 7 or i == 8:
+            pygame.draw.rect(screen, (255, 255, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
+            pygame.draw.rect(screen, (255, 255, 0), (0, 135 + 15 * i, 10, 10))
+
+
+
 
     # ball
     ball = pygame.draw.rect(screen, (255, 255, 255), (ball_x, ball_y, 10, 10))
