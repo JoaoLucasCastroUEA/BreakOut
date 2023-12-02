@@ -88,6 +88,10 @@ def visuals():
             pygame.draw.rect(screen, (255, 255, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
             pygame.draw.rect(screen, (255, 255, 0), (0, 135 + 15 * i, 10, 10))
 
+    pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, 690, 10, 30))
+    pygame.draw.rect(screen, (000, 90, 137), (0, 690, 10, 30))
+
+
 
 
 
