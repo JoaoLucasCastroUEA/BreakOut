@@ -2,7 +2,7 @@ import pygame
 
 pygame.init()
 # window config
-HEIGHT = 780
+HEIGHT = 850
 WIDTH = 723
 
 # Set the screen size and create a Pygame display
@@ -13,21 +13,23 @@ pygame.display.set_caption("BreakOut - PyGame Edition - 2023-11-30")
 # game loop
 game_loop = True
 game_clock = pygame.time.Clock()
+game_over = False
 
 # sound effects
 bounce_sound_effect = pygame.mixer.Sound('assets/bounce.wav')
 
 # bricks
-brick_dimension = ((WIDTH - 65) / 14, 10)
-brick_list = [[[pygame.Rect((j * ((WIDTH + 5) / 14), 150 + i * 15), brick_dimension), 1] for j in range(14)]for i in range(8)]
+brick_size = ((WIDTH - 65) / 14, 10)
+brick_list = [[[pygame.Rect(((WIDTH + 5) / 14 * j, 150 + i * 15), brick_size), 1] for j in range(14)]for i in range(8)]
 print(brick_list)
 can_break = True
+breakout = False
+hits = 0
 
 # player
-player_x = WIDTH/2
-player_y = 700
 player_move_left = False
 player_move_right = False
+player = pygame.Rect(WIDTH/2, HEIGHT - 80, 70, 10)
 
 # HUD
 points = 0
@@ -37,29 +39,38 @@ display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
 font_lives = pygame.font.Font('assets/PixelGameFont.ttf', 20)
 font_points = pygame.font.Font('assets/PixelGameFont.ttf', 32)
 
+# walls
+upper_wall = pygame.Rect(0, 0, WIDTH, 60)
+left_wall = pygame.Rect(0, 0, 10, HEIGHT)
+right_wall = pygame.Rect(WIDTH - 10, 0, 10, HEIGHT)
 
 
 # ball config
 ball_speed_x = -5
-ball_speed_y = 5
-ball_x = 200
-ball_y = 300
+ball_speed_y = 4
+ball = pygame.Rect(200, 350, 10, 10)
+
+
+def ball_reset():
+    global ball_speed_x, ball_speed_y, hits, can_break, player
+    ball_speed_x = -5
+    ball_speed_y = 4
+    ball[0] = 200
+    ball[1] = 400
+    can_break = True
+    player[2] = 70
+    hits = 0
 
 
 def visuals():
-    screen.fill((0, 0, 0))
-    global player, left_wall, right_wall, ball, brick_dimension
-    player = pygame.draw.rect(screen, (000, 90, 137), (player_x, player_y, 70, 10))
+    screen.fill(black)
+    # walls
+    pygame.draw.rect(screen, (000, 90, 137), player)
+    pygame.draw.rect(screen, (255, 255, 255), upper_wall)
+    pygame.draw.rect(screen, (255, 255, 255), right_wall)
+    pygame.draw.rect(screen, (255, 255, 255), left_wall)
 
-    #
-    upper_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, WIDTH, 60))
-    left_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 10, 780))
-    right_wall = pygame.draw.rect(screen, (255, 255, 255), (WIDTH - 10, 0, 10, 780))
-    text_lives = font_lives.render(str(lives), True, black)
-    text_points = font_points.render("%03d" % points, True, black)
-
-
-# bricks
+    # bricks
     for i in range(8):
         if i < 2:
             for j in range(14):
@@ -80,128 +91,153 @@ def visuals():
 
     # colored walls
     for i in range(9):
-        # red wall
+        # red walls
         if i == 1 or i == 2:
             pygame.draw.rect(screen, (255, 0, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
             pygame.draw.rect(screen, (255, 0, 0), (0, 135 + 15 * i, 10, 10))
 
-        # orange wall
+        # orange walls
         if i == 3 or i == 4:
             pygame.draw.rect(screen, (255, 165, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
             pygame.draw.rect(screen, (255, 165, 0), (0, 135 + 15 * i, 10, 10))
 
-        # green wall
+        # green walls
         if i == 5 or i == 6:
             pygame.draw.rect(screen, (0, 255, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
             pygame.draw.rect(screen, (0, 255, 0), (0, 135 + 15 * i, 10, 10))
 
-        # yellow wall
+        # yellow walls
         if i == 7 or i == 8:
             pygame.draw.rect(screen, (255, 255, 0), (WIDTH - 10, 135 + 15 * i, 10, 10))
             pygame.draw.rect(screen, (255, 255, 0), (0, 135 + 15 * i, 10, 10))
 
-    pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, 690, 10, 30))
-    pygame.draw.rect(screen, (000, 90, 137), (0, 690, 10, 30))
+    pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, HEIGHT - 90, 10, 30))
+    pygame.draw.rect(screen, (000, 90, 137), (0, HEIGHT - 90, 10, 30))
+
+    # lives and score
+    text_lives = font_lives.render(str(lives), True, black)
+    text_points = font_points.render("%03d" % points, True, black)
     display_surface.blit(text_lives, (580, 5))
     display_surface.blit(text_points, (600, 25))
 
-
-
-
-
     # ball
-    ball = pygame.draw.rect(screen, (255, 255, 255), (ball_x, ball_y, 10, 10))
-    if 135 <= ball_y < 165:
-        pygame.draw.rect(screen, (255, 0, 0), (ball_x, ball_y, 10, 10))
-    elif 165 <= ball_y < 195:
-        pygame.draw.rect(screen, (255, 165, 0), (ball_x, ball_y, 10, 10))
-    elif 195 <= ball_y < 225:
-        pygame.draw.rect(screen, (0, 255, 0), (ball_x, ball_y, 10, 10))
-    elif 225 <= ball_y < 255:
-        pygame.draw.rect(screen, (255, 255, 0), (ball_x, ball_y, 10, 10))
+    pygame.draw.rect(screen, (255, 255, 255), ball)
+    if 135 <= ball[1] < 165:
+        pygame.draw.rect(screen, (255, 0, 0), ball)
+    elif 165 <= ball[1] < 195:
+        pygame.draw.rect(screen, (255, 165, 0), ball)
+    elif 195 <= ball[1] < 225:
+        pygame.draw.rect(screen, (0, 255, 0), ball)
+    elif 225 <= ball[1] < 255:
+        pygame.draw.rect(screen, (255, 255, 0), ball)
 
 
-def commands(event):
+def commands(command):
     global game_loop, player_move_right, player_move_left
 
-    if event.type == pygame.QUIT or lives == 0:
+    if command.type == pygame.QUIT:
         game_loop = False
 
-    if event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_LEFT:
+    if command.type == pygame.KEYDOWN:
+        if command.key == pygame.K_LEFT:
             player_move_left = True
-        if event.key == pygame.K_RIGHT:
+        if command.key == pygame.K_RIGHT:
             player_move_right = True
 
-    if event.type == pygame.KEYUP:
-        if event.key == pygame.K_LEFT:
+    if command.type == pygame.KEYUP:
+        if command.key == pygame.K_LEFT:
             player_move_left = False
-        if event.key == pygame.K_RIGHT:
+        if command.key == pygame.K_RIGHT:
             player_move_right = False
 
 
 def animations():
     # player pad animation
-    global player_x, ball_y, ball_x, right_wall, left_wall
-    if player_move_right and player_x < (WIDTH - player[2] - right_wall[2]):
-        player_x += 7
-    else:
-        player_x += 0
+    global ball_speed_y, player
+    if player_move_right and player[0] < (WIDTH - player[2] - right_wall[2]):
+        player[0] += 8
 
-    if player_move_left and player_x > left_wall[2]:
-        player_x -= 7
-    else:
-        player_x -= 0
+    if player_move_left and player[0] > left_wall[2]:
+        player[0] -= 8
 
     # ball animation
-    ball_x += ball_speed_x
-    ball_y += ball_speed_y
+    ball[0] += ball_speed_x
+    ball[1] += ball_speed_y
 
 
 def colliders():
-    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break, ball_x, lives, points
+    global ball_speed_x, ball_speed_y, can_break, lives, points, game_over, hits, player
     if ball.colliderect(player) and ball_speed_y > 0:
-        ball_y -= 10
+        can_break = True
+        ball[1] -= 10
         ball_speed_y *= -1
         bounce_sound_effect.play()
 
     # collision with wall
-    if ball_x > 700:
-        can_break = True
+    if ball[0] > 700:
         ball_speed_x *= -1
         bounce_sound_effect.play()
-    if ball_x < 10:
+    if ball[0] < 10:
         ball_speed_x *= -1
-        can_break = True
         bounce_sound_effect.play()
-    if ball_y < 60:
+    if ball[1] < 60:
         ball_speed_y *= -1
         can_break = True
+        if not game_over:
+            player[2] = 35
         bounce_sound_effect.play()
 
     # collision with bricks
-    brick_column = ball_x // 52
-    if 150 < ball_y < 270:
-        brick_row = ball_y // 15 - 10
+    brick_column = ball[0] // 52
+    if 150 < ball[1] < 8 * 15 + 150:
+        brick_row = (ball[1] - 150) // 15
         if (ball.colliderect(brick_list[brick_row][brick_column][0])
                 and brick_list[brick_row][brick_column][1] and can_break):
+            hits += 1
             ball_speed_y *= -1
             if ball_speed_y < 0:
-                ball_y -= ball_speed_y
+                ball[1] -= ball_speed_y
             else:
-                ball_y += ball_speed_y
+                ball[1] += ball_speed_y
             can_break = False
-            brick_list[brick_row][brick_column][1] = 0
+            if not game_over:
+                brick_list[brick_row][brick_column][1] = 0
+                if brick_row < 2:
+                    points += 7
+                elif brick_row < 4:
+                    points += 5
+                elif brick_row < 6:
+                    points += 3
+                else:
+                    points += 1
             bounce_sound_effect.play()
-            points += 1
+            # ball speed change
+            if not game_over:
+                if brick_row < 4:
+                    if ball_speed_y < 0:
+                        ball_speed_y = -12
+                    else:
+                        ball_speed_y = 12
+                elif ball_speed_y != 12 or ball_speed_y != -12:
+                    if hits == 4:
+                        if ball_speed_y < 0:
+                            ball_speed_y = -7
+                        else:
+                            ball_speed_y = 7
+                    elif hits == 12:
+                        if ball_speed_y < 0:
+                            ball_speed_y = -10
+                        else:
+                            ball_speed_y = 10
 
     # ball falling off
-    if ball_y > 750:
-        ball_speed_x = -5
-        ball_speed_y = 5
-        ball_x = 200
-        ball_y = 300
+    if ball[1] > HEIGHT - 30:
+        ball_reset()
         lives -= 1
+        if lives == 0:
+            game_over = True
+            player[0] = 0
+            player[2] = WIDTH
 
 
 while game_loop:
