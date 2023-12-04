@@ -56,10 +56,10 @@ def visuals():
     left_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 10, 780))
     right_wall = pygame.draw.rect(screen, (255, 255, 255), (WIDTH - 10, 0, 10, 780))
     text_lives = font_lives.render(str(lives), True, black)
-    text_points = font_points.render(f"{str(points):03}", True, black)
+    text_points = font_points.render("%03d" % points, True, black)
 
 
-    # bricks
+# bricks
     for i in range(8):
         if i < 2:
             for j in range(14):
@@ -159,7 +159,7 @@ def animations():
 
 
 def colliders():
-    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break, ball_x, lives
+    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break, ball_x, lives, points
     if ball.colliderect(player) and ball_speed_y > 0:
         ball_y -= 10
         ball_speed_y *= -1
@@ -193,6 +193,7 @@ def colliders():
             can_break = False
             brick_list[brick_row][brick_column][1] = 0
             bounce_sound_effect.play()
+            points += 1
 
     # ball falling off
     if ball_y > 750:
