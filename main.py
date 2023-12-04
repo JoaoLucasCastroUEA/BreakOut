@@ -33,7 +33,7 @@ player_move_right = False
 points = 0
 lives = 3
 black = (0, 0, 0)
-display_surface = pygame.display.set_mode((HEIGHT-60, WIDTH))
+display_surface = pygame.display.set_mode((WIDTH, HEIGHT))
 font_lives = pygame.font.Font('assets/PixelGameFont.ttf', 20)
 font_points = pygame.font.Font('assets/PixelGameFont.ttf', 32)
 
