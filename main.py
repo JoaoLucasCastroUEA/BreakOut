@@ -29,6 +29,16 @@ player_y = 700
 player_move_left = False
 player_move_right = False
 
+# HUD
+points = 0
+lives = 3
+black = (0, 0, 0)
+display_surface = pygame.display.set_mode((HEIGHT-60, WIDTH))
+font_lives = pygame.font.Font('assets/PixelGameFont.ttf', 20)
+font_points = pygame.font.Font('assets/PixelGameFont.ttf', 32)
+
+
+
 # ball config
 ball_speed_x = -5
 ball_speed_y = 5
@@ -41,10 +51,12 @@ def visuals():
     global player, left_wall, right_wall, ball, brick_dimension
     player = pygame.draw.rect(screen, (000, 90, 137), (player_x, player_y, 70, 10))
 
-    # walls
+    #
     upper_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, WIDTH, 60))
     left_wall = pygame.draw.rect(screen, (255, 255, 255), (0, 0, 10, 780))
     right_wall = pygame.draw.rect(screen, (255, 255, 255), (WIDTH - 10, 0, 10, 780))
+    text_lives = font_lives.render(str(lives), True, black)
+    text_points = font_points.render(f"{str(points):03}", True, black)
 
 
     # bricks
@@ -90,6 +102,8 @@ def visuals():
 
     pygame.draw.rect(screen, (000, 90, 137), (WIDTH - 10, 690, 10, 30))
     pygame.draw.rect(screen, (000, 90, 137), (0, 690, 10, 30))
+    display_surface.blit(text_lives, (580, 5))
+    display_surface.blit(text_points, (600, 25))
 
 
 
@@ -110,7 +124,7 @@ def visuals():
 def commands(event):
     global game_loop, player_move_right, player_move_left
 
-    if event.type == pygame.QUIT:
+    if event.type == pygame.QUIT or lives == 0:
         game_loop = False
 
     if event.type == pygame.KEYDOWN:
@@ -145,14 +159,14 @@ def animations():
 
 
 def colliders():
-    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break
+    global ball, right_wall, ball_speed_x, ball_speed_y, ball_y, can_break, ball_x, lives
     if ball.colliderect(player) and ball_speed_y > 0:
         ball_y -= 10
         ball_speed_y *= -1
         bounce_sound_effect.play()
 
     # collision with wall
-    if ball_x > 680:
+    if ball_x > 700:
         can_break = True
         ball_speed_x *= -1
         bounce_sound_effect.play()
@@ -179,6 +193,14 @@ def colliders():
             can_break = False
             brick_list[brick_row][brick_column][1] = 0
             bounce_sound_effect.play()
+
+    # ball falling off
+    if ball_y > 750:
+        ball_speed_x = -5
+        ball_speed_y = 5
+        ball_x = 200
+        ball_y = 300
+        lives -= 1
 
 
 while game_loop:
