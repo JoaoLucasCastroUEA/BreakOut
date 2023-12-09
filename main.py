@@ -3,7 +3,7 @@ import pygame
 pygame.init()
 # window config
 HEIGHT = 850
-WIDTH = 723
+WIDTH = 725
 
 # Set the screen size and create a Pygame display
 size = (WIDTH, HEIGHT)
@@ -19,9 +19,10 @@ game_over = False
 bounce_sound_effect = pygame.mixer.Sound('assets/bounce.wav')
 
 # bricks
-brick_size = ((WIDTH - 65) / 14, 10)
-brick_list = [[[pygame.Rect(((WIDTH + 5) / 14 * j, 150 + i * 15), brick_size), 1] for j in range(14)]for i in range(8)]
-print(brick_list)
+brick_size = ((WIDTH - 39) / 14, 10)
+brick_list = [[[pygame.Rect(((WIDTH + 3) / 14 * j, 150 + i * 15), brick_size), 1] for j in range(14)]for i in range(8)]
+for i in range(8):
+    print(brick_list[i])
 can_break = True
 breakout = False
 hits = 0
@@ -30,6 +31,7 @@ hits = 0
 player_move_left = False
 player_move_right = False
 player = pygame.Rect(WIDTH/2, HEIGHT - 80, 70, 10)
+player_parts = player[2] / 7
 
 # HUD
 points = 0
@@ -60,6 +62,23 @@ def ball_reset():
     can_break = True
     player[2] = 70
     hits = 0
+
+
+def ball_collision_angle():
+    global player_parts, ball_speed_x
+    for i in range(7):
+        if player[0] + i * player_parts < ball[0] + 10 < player[0] + (i + 1) * player_parts:
+            if i == 3:
+                if ball_speed_x < 0:
+                    ball_speed_x = -3
+                else:
+                    ball_speed_x = 3
+            else:
+                if i > 3:
+                    ball_speed_x = (-(3 - i) + 1) * 2
+                else:
+                    ball_speed_x = (-(3 - i) - 1) * 2
+            break
 
 
 def visuals():
@@ -155,10 +174,10 @@ def animations():
     # player pad animation
     global ball_speed_y, player
     if player_move_right and player[0] < (WIDTH - player[2] - right_wall[2]):
-        player[0] += 8
+        player[0] += 10
 
     if player_move_left and player[0] > left_wall[2]:
-        player[0] -= 8
+        player[0] -= 10
 
     # ball animation
     ball[0] += ball_speed_x
@@ -169,15 +188,18 @@ def colliders():
     global ball_speed_x, ball_speed_y, can_break, lives, points, game_over, hits, player
     if ball.colliderect(player) and ball_speed_y > 0:
         can_break = True
-        ball[1] -= 10
+        ball_collision_angle()
+        ball[1] -= ball_speed_y
         ball_speed_y *= -1
         bounce_sound_effect.play()
 
     # collision with wall
     if ball[0] > 700:
+        ball[0] -= ball_speed_x
         ball_speed_x *= -1
         bounce_sound_effect.play()
     if ball[0] < 10:
+        ball[0] -= ball_speed_x
         ball_speed_x *= -1
         bounce_sound_effect.play()
     if ball[1] < 60:
@@ -188,9 +210,9 @@ def colliders():
         bounce_sound_effect.play()
 
     # collision with bricks
-    brick_column = ball[0] // 52
     if 150 < ball[1] < 8 * 15 + 150:
         brick_row = (ball[1] - 150) // 15
+        brick_column = ball[0] // 52
         if (ball.colliderect(brick_list[brick_row][brick_column][0])
                 and brick_list[brick_row][brick_column][1] and can_break):
             hits += 1
