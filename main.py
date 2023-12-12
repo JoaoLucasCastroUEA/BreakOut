@@ -31,7 +31,7 @@ hits = 0
 player_move_left = False
 player_move_right = False
 player = pygame.Rect(WIDTH/2, HEIGHT - 80, 70, 10)
-player_parts = player[2] / 7
+player_parts = player[2] / 8
 
 # HUD
 points = 0
@@ -66,19 +66,13 @@ def ball_reset():
 
 def ball_collision_angle():
     global player_parts, ball_speed_x
-    for i in range(7):
+    for i in range(8):
         if player[0] + i * player_parts < ball[0] + 10 < player[0] + (i + 1) * player_parts:
-            if i == 3:
-                if ball_speed_x < 0:
-                    ball_speed_x = -3
-                else:
-                    ball_speed_x = 3
+            if i > 3:
+                ball_speed_x = -(3 - i) * 2
             else:
-                if i > 3:
-                    ball_speed_x = (-(3 - i) + 1) * 2
-                else:
-                    ball_speed_x = (-(3 - i) - 1) * 2
-            break
+                ball_speed_x = -(4 - i) * 2
+        break
 
 
 def visuals():
@@ -240,7 +234,7 @@ def colliders():
                         ball_speed_y = -12
                     else:
                         ball_speed_y = 12
-                elif ball_speed_y != 12 or ball_speed_y != -12:
+                elif ball_speed_y != 12 and ball_speed_y != -12:
                     if hits == 4:
                         if ball_speed_y < 0:
                             ball_speed_y = -7
